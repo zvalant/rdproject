@@ -1,6 +1,13 @@
 import pandas as pd
 from fpdf import FPDF
-projects = pd.read_csv("C:\\Users\\Zac\\Desktop\\files\\R&D Items Due.csv", keep_default_na=False)
+import os
+import smtplib
+import time
+from datetime import datetime as dt
+from pathlib import Path
+import pandas
+from email.mime.multipart import MIMEMultipart
+projects = pd.read_csv("C:\\Users\\valan\\OneDrive\\Desktop\\files\\R&D Items Due.csv", keep_default_na=False)
 pd.options.display.width = None
 pd.options.display.max_columns = None
 pd.set_option("display.max_rows", 3000)
@@ -25,9 +32,9 @@ for i in range(len(projects)):
             for j in range(len(pns)):
                 active_demand[projects["Machine"][i-idx] + " " + projects["Due Date"][i]][0].append(pns[j])
                 active_demand[projects["Machine"][i - idx] + " " + projects["Due Date"][i]][1].append(qtys[j])
-print(active_demand)
-#generate pdfs for active projects
+#generate pdfs and sends emails for active projects
 for i in active_demand:
+    #generate pdf
     pdf = FPDF(orientation="P", unit="pt", format="Letter")
     pdf.add_page()
     pdf.set_font(family="Times", style="B",size=24)
@@ -36,6 +43,23 @@ for i in active_demand:
         pdf.set_font(family="Times", style="B",size=18)
         pdf.multi_cell(w=0,h=50, txt="        " + str(active_demand[i][0][j]) + " (" + str(active_demand[i][1][j]) + "X)")
     filename = i.replace("/", "-")
-    pdf.output(f"C:\\Users\\Zac\\Desktop\\files\\rdproject\\{filename}.pdf")
+    pdf.output(f"C:\\Users\\valan\\OneDrive\\Desktop\\files\\rdproject\\{filename}.pdf")
 # generate email including pdf for project
+email_u = os.environ.get("email_user")
+email_p = os.environ.get("email_pass")
+with smtplib.SMTP("smtp.office365.com", 587) as smtp:
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.ehlo()
+    smtp.login("zac23.v@hotmail.com", "CAMPUSLODGE1")
 
+        #subject = f"{row['name']} R&D LIST"
+        #msg = f"Subject: {subject}\n\n Items due soon!"
+        msg = MIMEMultipart()
+        msg["Subject"] = "Email Test"
+        msg["From"] = "zac23.v@hotmail.com"
+        msg["To"] = "valant2012@hotmail.com"
+        msgText = "Hello"
+        msg.attach()
+        smtp.sendmail("zac23.v@hotmail.com",row['email'], msg)
+        print("Email Sent!")
